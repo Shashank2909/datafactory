@@ -1,5 +1,5 @@
 {
-	"name": "departmentsDataset",
+	"name": "departmentsDataset1",
 	"properties": {
 		"linkedServiceName": {
 			"referenceName": "AzureBlobStorage1",
