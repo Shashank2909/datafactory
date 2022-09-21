@@ -1,0 +1,68 @@
+{
+	"name": "alterRow",
+	"properties": {
+		"type": "MappingDataFlow",
+		"typeProperties": {
+			"sources": [
+				{
+					"dataset": {
+						"referenceName": "departmentsDataset",
+						"type": "DatasetReference"
+					},
+					"name": "department"
+				}
+			],
+			"sinks": [
+				{
+					"dataset": {
+						"referenceName": "outputAlterRow",
+						"type": "DatasetReference"
+					},
+					"name": "outputAlterRow"
+				}
+			],
+			"transformations": [
+				{
+					"name": "alterRow1"
+				}
+			],
+			"scriptLines": [
+				"source(output(",
+				"          DEPARTMENT_ID as string,",
+				"          DEPARTMENT_NAME as string,",
+				"          MANAGER_ID as string,",
+				"          LOCATION_ID as string",
+				"     ),",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     ignoreNoFilesFound: false) ~> department",
+				"department alterRow(deleteIf(DEPARTMENT_NAME==\"Payroll\"),",
+				"     updateIf(DEPARTMENT_NAME==\"Engineering\"),",
+				"     upsertIf(true())) ~> alterRow1",
+				"alterRow1 sink(allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     input(",
+				"          DEPARTMENT_ID as string,",
+				"          DEPARTMENT_NAME as string,",
+				"          MANAGER_ID as string,",
+				"          LOCATION_ID as string",
+				"     ),",
+				"     deletable:true,",
+				"     insertable:true,",
+				"     updateable:true,",
+				"     upsertable:true,",
+				"     keys:['DEPARTMENT_ID'],",
+				"     format: 'table',",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true,",
+				"     errorHandlingOption: 'stopOnFirstError',",
+				"     mapColumn(",
+				"          DEPARTMENT_ID,",
+				"          DEPARTMENT_NAME,",
+				"          MANAGER_ID,",
+				"          LOCATION_ID",
+				"     )) ~> outputAlterRow"
+			]
+		}
+	}
+}
