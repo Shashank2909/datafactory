@@ -6,7 +6,7 @@
 			"sources": [
 				{
 					"dataset": {
-						"referenceName": "departmentDataset",
+						"referenceName": "departmentsDataset",
 						"type": "DatasetReference"
 					},
 					"name": "department"
