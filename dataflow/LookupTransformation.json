@@ -12,6 +12,10 @@
 					"name": "employee"
 				},
 				{
+					"dataset": {
+						"referenceName": "departmentDataset",
+						"type": "DatasetReference"
+					},
 					"name": "department"
 				}
 			],
@@ -53,7 +57,8 @@
 				"          LOCATION_ID as string",
 				"     ),",
 				"     allowSchemaDrift: true,",
-				"     validateSchema: false) ~> department",
+				"     validateSchema: false,",
+				"     ignoreNoFilesFound: false) ~> department",
 				"employee, department lookup(employee@DEPARTMENT_ID == department@DEPARTMENT_ID,",
 				"     multiple: false,",
 				"     pickup: 'any',",
