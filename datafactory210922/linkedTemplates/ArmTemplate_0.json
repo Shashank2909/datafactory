@@ -10,6 +10,10 @@
 		"AzureBlobStorage1_connectionString": {
 			"type": "secureString",
 			"metadata": "Secure string for 'connectionString' of 'AzureBlobStorage1'"
+		},
+		"AzureSqlDatabase1_connectionString": {
+			"type": "secureString",
+			"metadata": "Secure string for 'connectionString' of 'AzureSqlDatabase1'"
 		}
 	},
 	"variables": {
@@ -25,6 +29,19 @@
 				"type": "AzureBlobStorage",
 				"typeProperties": {
 					"connectionString": "[parameters('AzureBlobStorage1_connectionString')]"
+				}
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/AzureSqlDatabase1')]",
+			"type": "Microsoft.DataFactory/factories/linkedServices",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"annotations": [],
+				"type": "AzureSqlDatabase",
+				"typeProperties": {
+					"connectionString": "[parameters('AzureSqlDatabase1_connectionString')]"
 				}
 			},
 			"dependsOn": []
@@ -278,7 +295,7 @@
 			]
 		},
 		{
-			"name": "[concat(parameters('factoryName'), '/departmentsDataset')]",
+			"name": "[concat(parameters('factoryName'), '/departmentsDataset1')]",
 			"type": "Microsoft.DataFactory/factories/datasets",
 			"apiVersion": "2018-06-01",
 			"properties": {
@@ -396,6 +413,44 @@
 			]
 		},
 		{
+			"name": "[concat(parameters('factoryName'), '/outputAlterRow')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "AzureSqlDatabase1",
+					"type": "LinkedServiceReference"
+				},
+				"annotations": [],
+				"type": "AzureSqlTable",
+				"schema": [
+					{
+						"name": "DEPARTMENT_ID",
+						"type": "varchar"
+					},
+					{
+						"name": "DEPARTMENT_NAME",
+						"type": "varchar"
+					},
+					{
+						"name": "MANAGER_ID",
+						"type": "varchar"
+					},
+					{
+						"name": "LOCATION_ID",
+						"type": "varchar"
+					}
+				],
+				"typeProperties": {
+					"schema": "dbo",
+					"table": "departments"
+				}
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/linkedServices/AzureSqlDatabase1')]"
+			]
+		},
+		{
 			"name": "[concat(parameters('factoryName'), '/outputJson')]",
 			"type": "Microsoft.DataFactory/factories/datasets",
 			"apiVersion": "2018-06-01",
@@ -449,7 +504,7 @@
 			]
 		},
 		{
-			"name": "[concat(parameters('factoryName'), '/outputSurrogate')]",
+			"name": "[concat(parameters('factoryName'), '/outputSurrogate1')]",
 			"type": "Microsoft.DataFactory/factories/datasets",
 			"apiVersion": "2018-06-01",
 			"properties": {
@@ -565,7 +620,7 @@
 					"sources": [
 						{
 							"dataset": {
-								"referenceName": "departmentsDataset",
+								"referenceName": "departmentsDataset1",
 								"type": "DatasetReference"
 							},
 							"name": "department"
@@ -574,7 +629,7 @@
 					"sinks": [
 						{
 							"dataset": {
-								"referenceName": "outputSurrogate",
+								"referenceName": "outputSurrogate1",
 								"type": "DatasetReference"
 							},
 							"name": "SurrogateKeyOutput"
@@ -606,8 +661,82 @@
 				}
 			},
 			"dependsOn": [
-				"[concat(variables('factoryId'), '/datasets/departmentsDataset')]",
-				"[concat(variables('factoryId'), '/datasets/outputSurrogate')]"
+				"[concat(variables('factoryId'), '/datasets/departmentsDataset1')]",
+				"[concat(variables('factoryId'), '/datasets/outputSurrogate1')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/alterRow')]",
+			"type": "Microsoft.DataFactory/factories/dataflows",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"type": "MappingDataFlow",
+				"typeProperties": {
+					"sources": [
+						{
+							"dataset": {
+								"referenceName": "departmentsDataset1",
+								"type": "DatasetReference"
+							},
+							"name": "department"
+						}
+					],
+					"sinks": [
+						{
+							"dataset": {
+								"referenceName": "outputAlterRow",
+								"type": "DatasetReference"
+							},
+							"name": "outputAlterRow"
+						}
+					],
+					"transformations": [
+						{
+							"name": "alterRow1"
+						}
+					],
+					"scriptLines": [
+						"source(output(",
+						"          DEPARTMENT_ID as string,",
+						"          DEPARTMENT_NAME as string,",
+						"          MANAGER_ID as string,",
+						"          LOCATION_ID as string",
+						"     ),",
+						"     allowSchemaDrift: true,",
+						"     validateSchema: false,",
+						"     ignoreNoFilesFound: false) ~> department",
+						"department alterRow(deleteIf(DEPARTMENT_NAME==\"Payroll\"),",
+						"     updateIf(DEPARTMENT_NAME==\"Engineering\"),",
+						"     upsertIf(true())) ~> alterRow1",
+						"alterRow1 sink(allowSchemaDrift: true,",
+						"     validateSchema: false,",
+						"     input(",
+						"          DEPARTMENT_ID as string,",
+						"          DEPARTMENT_NAME as string,",
+						"          MANAGER_ID as string,",
+						"          LOCATION_ID as string",
+						"     ),",
+						"     deletable:true,",
+						"     insertable:true,",
+						"     updateable:true,",
+						"     upsertable:true,",
+						"     keys:['DEPARTMENT_ID'],",
+						"     format: 'table',",
+						"     skipDuplicateMapInputs: true,",
+						"     skipDuplicateMapOutputs: true,",
+						"     errorHandlingOption: 'stopOnFirstError',",
+						"     mapColumn(",
+						"          DEPARTMENT_ID,",
+						"          DEPARTMENT_NAME,",
+						"          MANAGER_ID,",
+						"          LOCATION_ID",
+						"     )) ~> outputAlterRow"
+					]
+				}
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/datasets/departmentsDataset1')]",
+				"[concat(variables('factoryId'), '/datasets/outputAlterRow')]"
 			]
 		},
 		{
@@ -780,7 +909,7 @@
 			]
 		},
 		{
-			"name": "[concat(parameters('factoryName'), '/jsonPipeline')]",
+			"name": "[concat(parameters('factoryName'), '/alterRowPipeline')]",
 			"type": "Microsoft.DataFactory/factories/pipelines",
 			"apiVersion": "2018-06-01",
 			"properties": {
@@ -799,12 +928,12 @@
 						"userProperties": [],
 						"typeProperties": {
 							"dataflow": {
-								"referenceName": "jsonProcessing",
+								"referenceName": "alterRow",
 								"type": "DataFlowReference",
 								"parameters": {},
 								"datasetParameters": {
-									"jsonSource": {},
-									"outputJson": {}
+									"department": {},
+									"outputAlterRow": {}
 								}
 							},
 							"staging": {},
@@ -823,7 +952,7 @@
 				"annotations": []
 			},
 			"dependsOn": [
-				"[concat(variables('factoryId'), '/dataflows/jsonProcessing')]"
+				"[concat(variables('factoryId'), '/dataflows/alterRow')]"
 			]
 		}
 	]
