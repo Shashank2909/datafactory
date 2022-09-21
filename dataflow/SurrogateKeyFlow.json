@@ -14,10 +14,6 @@
 			],
 			"sinks": [
 				{
-					"dataset": {
-						"referenceName": "outputSurrogate",
-						"type": "DatasetReference"
-					},
 					"name": "SurrogateKeyOutput"
 				}
 			],
