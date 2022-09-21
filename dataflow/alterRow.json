@@ -5,10 +5,6 @@
 		"typeProperties": {
 			"sources": [
 				{
-					"dataset": {
-						"referenceName": "departmentsDataset",
-						"type": "DatasetReference"
-					},
 					"name": "department"
 				}
 			],
@@ -34,8 +30,7 @@
 				"          LOCATION_ID as string",
 				"     ),",
 				"     allowSchemaDrift: true,",
-				"     validateSchema: false,",
-				"     ignoreNoFilesFound: false) ~> department",
+				"     validateSchema: false) ~> department",
 				"department alterRow(deleteIf(DEPARTMENT_NAME==\"Payroll\"),",
 				"     updateIf(DEPARTMENT_NAME==\"Engineering\"),",
 				"     upsertIf(true())) ~> alterRow1",
