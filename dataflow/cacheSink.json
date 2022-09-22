@@ -37,6 +37,9 @@
 				},
 				{
 					"name": "derivedColumn1"
+				},
+				{
+					"name": "sortBySurrogate"
 				}
 			],
 			"scriptLines": [
@@ -68,6 +71,7 @@
 				"     startAt: 1L,",
 				"     stepValue: 1L) ~> surrogateKey1",
 				"surrogateKey1 derive(surrogateKey = empIDCache#outputs()[1].maxID + EMPLOYEE_ID) ~> derivedColumn1",
+				"derivedColumn1 sort(asc(surrogateKey, true)) ~> sortBySurrogate",
 				"employees sink(validateSchema: false,",
 				"     skipDuplicateMapInputs: true,",
 				"     skipDuplicateMapOutputs: true,",
@@ -78,7 +82,7 @@
 				"     mapColumn(",
 				"          maxID",
 				"     )) ~> empIDCache",
-				"derivedColumn1 sink(allowSchemaDrift: true,",
+				"sortBySurrogate sink(allowSchemaDrift: true,",
 				"     validateSchema: false,",
 				"     skipDuplicateMapInputs: true,",
 				"     skipDuplicateMapOutputs: true) ~> outputCache"
