@@ -748,7 +748,7 @@
 								"referenceName": "AzureDataLakeConnection",
 								"type": "LinkedServiceReference"
 							},
-							"name": "sink1"
+							"name": "sink2"
 						}
 					],
 					"transformations": [
@@ -812,7 +812,7 @@
 						"     quoteChar: '\\\"',",
 						"     columnNamesAsHeader: true,",
 						"     skipDuplicateMapInputs: true,",
-						"     skipDuplicateMapOutputs: true) ~> sink1"
+						"     skipDuplicateMapOutputs: true) ~> sink2"
 					]
 				}
 			},
@@ -846,7 +846,7 @@
 								"datasetParameters": {
 									"employees": {},
 									"departments": {},
-									"sink1": {}
+									"sink2": {}
 								}
 							},
 							"staging": {},
